@@ -13,7 +13,7 @@ BlueConnect is a mobile application intended to allow the user to seamlessly con
  
 !!!For the following, add a PDF of your artifact to the repository and replace the # with the file name!!!
 
-* [Personas and Scenarios](personas/)
+* [Personas and Scenarios](https://github.com/acderosas/pdf/blob/847c3bbc21369efb77dfc31ad001b2a434b5786a/BlueConnect%20Personas%20and%20Scenarios.pdf)
 * [Sketches and Diagrams](sketches/)
 * [Wireframes](wireframes/)
 * [Prototype](#)
