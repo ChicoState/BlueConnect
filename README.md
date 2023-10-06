@@ -10,11 +10,9 @@ BlueConnect is a mobile application intended to allow the user to seamlessly con
 
 
 # User-Centered Design Artifacts
- 
-!!!For the following, add a PDF of your artifact to the repository and replace the # with the file name!!!
 
 * [Personas and Scenarios](https://github.com/acderosas/pdf/blob/847c3bbc21369efb77dfc31ad001b2a434b5786a/BlueConnect%20Personas%20and%20Scenarios.pdf)
-* [Sketches and Diagrams](sketches/)
+* [Sketches and Diagrams](https://github.com/acderosas/pdf/blob/847c3bbc21369efb77dfc31ad001b2a434b5786a/BlueConnect%20Sketch.pdf)
 * [Wireframes](wireframes/)
 * [Prototype](#)
 
@@ -22,10 +20,11 @@ BlueConnect is a mobile application intended to allow the user to seamlessly con
 
 **Executive Summary**
 
-* !!!In a bullet-list, provide a summary that highlights...!!!
-* !!!What you've done during this phase...!!!
-* !!!and what the significance of it is...!!!
-* !!!as an executive would understand.!!!
+* In Sprint 1 Blueconnect features include:
+- Connectivity to previously established devices 
+- Basic chat functionality
+* These features provide an important foundation that will be built on in the next phase
+* Our next goal will be to enable multiple devices to connect at once and enable the application to search and identify Bluetooth products on its own.
 
 [Full phase I report](phaseI/)
 
