@@ -13,7 +13,7 @@
  
 !!!For the following, add a PDF of your artifact to the repository and replace the # with the file name!!!
 
-* [Personas and Scenarios](personas/)
+* [Personas and Scenarios](Personas and Scenarios/)
 * [Sketches and Diagrams](sketches/)
 * [Wireframes](wireframes/)
 * [Prototype](#)
