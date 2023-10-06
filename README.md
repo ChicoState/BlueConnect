@@ -4,8 +4,8 @@
 
 ## UX Team Members
 
-* **[Person A](!!!URL to Person A's published portfolio!!!)** - !!!List of Person A's primary contributions!!!
-* **[Person B](!!!URL to Person B's published portfolio!!!)** - !!!List of Person B's primary contributions!!!
+* **[Isael Melchor-Puentes](!!!URL to Person A's published portfolio!!!)** - Introduction, Methods 
+* **[Daniel Rogers](https://github.com/UsabilityEngineering/ux-portfolio-droge91/blob/3e5aa57f10c3ef0bf55f186bfd34936d14a966cb/README.md)** - Caveats, Conclusions, Executive Summary
 * **[Andre de Rosas](https://github.com/UsabilityEngineering/ux-portfolio-acderosas/blob/7a411be7cf9e058c7f136547a4d60ab5fa39037f/README.md)** - Sketches/Diagrams, Personas and Scenarios, and Findings
 
 
@@ -13,7 +13,7 @@
  
 !!!For the following, add a PDF of your artifact to the repository and replace the # with the file name!!!
 
-* [Personas and Scenarios](Personas and Scenarios/)
+* [Personas and Scenarios](personas/)
 * [Sketches and Diagrams](sketches/)
 * [Wireframes](wireframes/)
 * [Prototype](#)
