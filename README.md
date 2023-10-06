@@ -6,7 +6,7 @@
 
 * **[Person A](!!!URL to Person A's published portfolio!!!)** - !!!List of Person A's primary contributions!!!
 * **[Person B](!!!URL to Person B's published portfolio!!!)** - !!!List of Person B's primary contributions!!!
-* **[Andre de Rosas](https://github.com/UsabilityEngineering/ux-portfolio-acderosas/blob/7a411be7cf9e058c7f136547a4d60ab5fa39037f/README.md)** - Sketches/Diagrams, Personas and Scenarios, and Findings
+  **[Andre de Rosas](https://github.com/UsabilityEngineering/ux-portfolio-acderosas/blob/7a411be7cf9e058c7f136547a4d60ab5fa39037f/README.md)** - Sketches/Diagrams, Personas and Scenarios, and Findings
 
 
 # User-Centered Design Artifacts
