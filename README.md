@@ -4,7 +4,7 @@ BlueConnect is a mobile application intended to allow the user to seamlessly con
 
 ## UX Team Members
 
-* **[Isael Melchor-Puentes](https://github.com/UsabilityEngineering/ux-portfolio-isaelpuentes)** - Introduction, Methods 
+* **[Isael Melchor-Puentes](https://github.com/UsabilityEngineering/ux-portfolio-isaelpuentes/blob/a181573f1078a1858d5320df7f80a24f41cc5435/README.md)** - Introduction, Methods 
 * **[Daniel Rogers](https://github.com/UsabilityEngineering/ux-portfolio-droge91/blob/3e5aa57f10c3ef0bf55f186bfd34936d14a966cb/README.md)** - Caveats, Conclusions, Executive Summary
 * **[Andre de Rosas](https://github.com/UsabilityEngineering/ux-portfolio-acderosas/blob/7a411be7cf9e058c7f136547a4d60ab5fa39037f/README.md)** - Sketches/Diagrams, Personas and Scenarios, and Findings
 
