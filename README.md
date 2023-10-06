@@ -21,8 +21,8 @@ BlueConnect is a mobile application intended to allow the user to seamlessly con
 **Executive Summary**
 
 * In Sprint 1 Blueconnect features include:
-* - Connectivity to previously established devices
-* - Basic chat functionality
+  - Connectivity to previously established devices
+  - Basic chat functionality
 * These features provide an important foundation that will be built on in the next phase
 * Our next goal will be to enable multiple devices to connect at once and enable the application to search and identify Bluetooth products on its own.
 
