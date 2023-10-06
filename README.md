@@ -20,7 +20,7 @@ BlueConnect is a mobile application intended to allow the user to seamlessly con
 
 **Executive Summary**
 
-* In Sprint 1 Blueconnect features include:
+* In Sprint 1 BlueConnect features include:
   - Connectivity to previously established devices
   - Basic chat functionality
 * These features provide an important foundation that will be built on in the next phase
