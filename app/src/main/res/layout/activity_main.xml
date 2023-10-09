@@ -2,85 +2,98 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/listDevices"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/btOn"
+        android:id="@+id/listen"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="68dp"
-        android:layout_marginBottom="633dp"
-        android:onClick="bluetoothOn"
-        android:text="Bluetooth On"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btOff"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="42dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="18dp"
+        android:text="Listen"
+        app:layout_constraintBottom_toTopOf="@+id/listview"
+        app:layout_constraintEnd_toStartOf="@+id/listdevices"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/btOff"
+        android:id="@+id/listdevices"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="25dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginBottom="633dp"
-        android:text="Bluetooth Off"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btOn"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="42dp"
+        android:layout_marginEnd="48dp"
+        android:layout_marginBottom="18dp"
+        android:text="List Devices"
+        app:layout_constraintBottom_toTopOf="@+id/listview"
+        app:layout_constraintEnd_toStartOf="@+id/status"
+        app:layout_constraintStart_toEndOf="@+id/listen"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/ShowDevices"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="27dp"
-        android:layout_marginTop="23dp"
-        android:layout_marginBottom="572dp"
-        android:text="Show Devices"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btOn"
-        app:layout_constraintVertical_bias="0.0" />
 
     <ListView
         android:id="@+id/listview"
-        android:layout_width="200dp"
-        android:layout_height="570dp"
-        android:layout_marginTop="32dp"
+        android:layout_width="407dp"
+        android:layout_height="272dp"
+        android:layout_marginStart="3dp"
         android:layout_marginEnd="1dp"
+        android:layout_marginBottom="39dp"
+        android:focusable="true"
+        android:clickable="true"
+        app:layout_constraintBottom_toTopOf="@+id/msg"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ShowDevices" />
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/findDevices"
+    <TextView
+        android:id="@+id/msg"
+        android:layout_width="396dp"
+        android:layout_height="132dp"
+        android:layout_marginStart="7dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="94dp"
+        android:text="Message"
+        app:layout_constraintBottom_toTopOf="@+id/writemsg"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="92dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="26dp"
-        android:layout_marginBottom="19dp"
-        android:text="Find Devices"
+        android:layout_marginTop="54dp"
+        android:layout_marginEnd="36dp"
+        android:layout_marginBottom="35dp"
+        android:text="Status"
         app:layout_constraintBottom_toTopOf="@+id/listview"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/ShowDevices"
-        app:layout_constraintTop_toBottomOf="@+id/btOff" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <ListView
-        android:id="@+id/scannedListView"
-        android:layout_width="209dp"
-        android:layout_height="564dp"
-        android:layout_marginStart="7dp"
-        android:layout_marginTop="26dp"
+    <EditText
+        android:id="@+id/writemsg"
+        android:layout_width="218dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="27dp"
+        android:text="Message"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="45dp"
+        android:layout_marginTop="95dp"
+        android:layout_marginEnd="36dp"
+        android:layout_marginBottom="32dp"
+        android:text="Send"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/listview"
-        app:layout_constraintTop_toBottomOf="@+id/findDevices" />
-
+        app:layout_constraintStart_toEndOf="@+id/writemsg"
+        app:layout_constraintTop_toBottomOf="@+id/msg" />
 </androidx.constraintlayout.widget.ConstraintLayout>
