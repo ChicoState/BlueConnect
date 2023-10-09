@@ -62,7 +62,11 @@ public class MainActivity extends AppCompatActivity {
     static final int STATE_MESSAGE_RECEIVED = 5;
 
     private static final String APP_NAME = "BTChat";
-    private static final UUID MY_UUID = UUID.fromString("ec01d2c3-52ef-4495-be73-112d2e2ce787");
+    private static final UUID[] MY_UUID = {UUID.fromString("ec01d2c3-52ef-4495-be73-112d2e2ce787"),
+                                           UUID.fromString("ef790c77-fd18-4e86-9e62-08aeba104465"),
+                                           UUID.fromString("2238fe5f-b5cc-4226-9416-3d2385146075"),
+                                           UUID.fromString("a16ecdf3-74c1-40db-94e4-6f29be306617"),
+                                           UUID.fromString("89143ef2-bf5e-434b-a740-43c05dc4697a")};
     Intent btEnable;
     private ActivityResultLauncher<Intent> enableBt;
 
@@ -193,12 +197,18 @@ public class MainActivity extends AppCompatActivity {
 
     private class ServerClass extends Thread
     {
+        int serverUUIDindex = 0;
         private BluetoothServerSocket serverSocket;
         public ServerClass() {
-            try {
-                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID);
-            } catch(IOException e) {
-                e.printStackTrace();
+            while(serverUUIDindex < 5)
+            {
+                try {
+                    serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID[serverUUIDindex]);
+                    break;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                serverUUIDindex++;
             }
         }
         public void run()
@@ -222,43 +232,47 @@ public class MainActivity extends AppCompatActivity {
                     Message message=Message.obtain();
                     message.what=STATE_CONNECTED;
                     handler.sendMessage(message);
-
                     sendReceive=new SendReceive(socket);
                     sendReceive.start();
-
                     break;
                 }
             }
         }
     }
 
+    //int socketIndex = 0;
+    int uuidIndex = 0;
+    //int deviceIndex = 0;
     private class ClientClass extends Thread
     {
-        private final BluetoothDevice device;
-        private final BluetoothSocket socket;
+        private final BluetoothDevice device;// = new BluetoothDevice[5];
 
+        private final BluetoothSocket socket;// = new BluetoothSocket[5];
         public ClientClass (BluetoothDevice device1)
         {
-            BluetoothSocket tmp = null;
-            device=device1;
-
-            try {
-                tmp=device.createRfcommSocketToServiceRecord(MY_UUID);
-            } catch (IOException e) {
-                e.printStackTrace();
+                BluetoothSocket tmp = null;
+                device = device1;
+            if(uuidIndex < 5) {
+                try {
+                    tmp = device.createRfcommSocketToServiceRecord(MY_UUID[uuidIndex]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             socket = tmp;
+            if(socket != null) {
+                uuidIndex++;
+            }
         }
 
         public void run()
         {
-            blueAdapter.cancelDiscovery();
+            //blueAdapter.cancelDiscovery();
             try {
                 socket.connect();
                 Message message = Message.obtain();
                 message.what=STATE_CONNECTED;
                 handler.sendMessage(message);
-
                 sendReceive=new SendReceive(socket);
                 sendReceive.start();
             } catch(IOException connectException) {
@@ -267,7 +281,6 @@ public class MainActivity extends AppCompatActivity {
                 handler.sendMessage(message);
                 try {
                     socket.close();
-
                 }
                 catch(IOException closeException) {
                     Log.e(TAG, "Could not close the client socket", closeException);
