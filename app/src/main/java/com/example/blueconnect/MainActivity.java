@@ -16,6 +16,8 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.ParcelUuid;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -39,6 +41,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
@@ -222,9 +226,16 @@ public class MainActivity extends AppCompatActivity {
         private BluetoothServerSocket serverSocket = null;
         public ServerClass() {
             try {
-                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID0);
-            } catch (IOException a) {
+                Method getUuidsMethod = BluetoothAdapter.class.getDeclaredMethod("getUuids", null);
+                ParcelUuid[] uuids = (ParcelUuid[]) getUuidsMethod.invoke(blueAdapter, null);
+
+                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, uuids[0].getUuid());
+            } catch (IOException | NoSuchMethodException a) {
                 a.printStackTrace();
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
         }
         public void run()
@@ -294,6 +305,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
     int connections = 0;
     private class ClientClass extends Thread
     {
@@ -302,12 +315,14 @@ public class MainActivity extends AppCompatActivity {
         private final BluetoothSocket socket;
         public ClientClass (BluetoothDevice device1)
         {
-                BluetoothSocket tmp = null;
-                device = device1;
+            BluetoothSocket tmp = null;
+            device = device1;
 
-                if(connections == 0) {
+            ParcelUuid[] uuids = device.getUuids();
+
+            if(connections == 0) {
                     try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID0);
+                        tmp = device.createRfcommSocketToServiceRecord(uuids[0].getUuid());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
