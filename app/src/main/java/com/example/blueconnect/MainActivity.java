@@ -52,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
     BluetoothAdapter blueAdapter;
     BluetoothDevice[] btArray;
 
-    SendReceive[] sendReceive = {null, null, null, null, null};
-    ClientClass[] clients = {null, null, null, null, null};
+    SendReceive[] sendReceive = {null, null, null, null, null, null};
+    ClientClass[] clients = {null, null, null, null, null, null};
 
     static final int STATE_LISTENING = 1;
     static final int STATE_CONNECTING = 2;
@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     static final int STATE_MESSAGE_RECEIVED = 5;
 
     private static final String APP_NAME = "BTChat";
+    private static final UUID MY_UUID0 = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     private static final UUID MY_UUID1 = UUID.fromString("ec01d2c3-52ef-4495-be73-112d2e2ce787");
     private static final UUID MY_UUID2 = UUID.fromString("ef790c77-fd18-4e86-9e62-08aeba104465");
     private static final UUID MY_UUID3 = UUID.fromString("2238fe5f-b5cc-4226-9416-3d2385146075");
@@ -102,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
                     btArray=new BluetoothDevice[bt.size()];
                     String[] strings = new String[bt.size()];
                     int index = 0;
-
                     if (bt.size() > 0) {
                         for (BluetoothDevice device : bt) {
                             btArray[index]=device;
@@ -118,6 +118,8 @@ public class MainActivity extends AppCompatActivity {
             listen.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                        ServerClass0 serverClass0 = new ServerClass0();
+                        serverClass0.start();
                         ServerClass1 serverClass1 = new ServerClass1();
                         serverClass1.start();
                         ServerClass2 serverClass2 = new ServerClass2();
@@ -134,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener((new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                for(int i = 0; i < 5; i++)
+                for(int i = 0; i < 6; i++)
                 {
                     if(clients[i] == null)
                     {
@@ -151,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String string=String.valueOf(writeMsg.getText());
-                for(int i = 0; i < 5; i++) {
+                for(int i = 0; i < 6; i++) {
                     if (sendReceive[i] != null) {
                         sendReceive[i].write(string.getBytes());
                     }
@@ -208,12 +210,51 @@ public class MainActivity extends AppCompatActivity {
             }
     }
 
+    private class ServerClass0 extends Thread
+    {
+        private BluetoothServerSocket serverSocket = null;
+        public ServerClass0() {
+            try {
+                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID1);
+            } catch (IOException a) {
+                a.printStackTrace();
+            }
+        }
+        public void run()
+        {
+            BluetoothSocket socket = null;
+            while (socket == null)
+            {
+                try {
+                    Message message=Message.obtain();
+                    message.what=STATE_CONNECTING;
+                    handler.sendMessage(message);
+                    socket = serverSocket.accept();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Message message=Message.obtain();
+                    message.what=STATE_CONNECTION_FAILED;
+                    handler.sendMessage(message);
+                }
+                if(socket != null)
+                {
+                    Message message=Message.obtain();
+                    message.what=STATE_CONNECTED;
+                    handler.sendMessage(message);
+                    sendReceive[0]=new SendReceive(socket);
+                    sendReceive[0].start();
+                    break;
+                }
+            }
+        }
+    }
+
     private class ServerClass1 extends Thread
     {
         private BluetoothServerSocket serverSocket = null;
         public ServerClass1() {
             try {
-                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID1);
+                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID0);
             } catch (IOException a) {
                 a.printStackTrace();
             }
@@ -408,7 +449,12 @@ public class MainActivity extends AppCompatActivity {
         {
                 BluetoothSocket tmp = null;
                 device = device1;
-
+/*            try {
+                tmp = device.createRfcommSocketToServiceRecord(MY_UUID0);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+*/
                 if(connections == 0) {
                     try {
                         tmp = device.createRfcommSocketToServiceRecord(MY_UUID1);
@@ -418,26 +464,33 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else if(connections == 1) {
                     try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID2);
+                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID0);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
                 else if(connections == 2) {
                     try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID3);
+                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID2);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
                 else if (connections == 3) {
                     try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID4);
+                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID3);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
                 else if(connections == 4) {
+                    try {
+                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID4);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else if(connections == 5) {
                     try {
                         tmp = device.createRfcommSocketToServiceRecord(MY_UUID5);
                     } catch (IOException e) {
@@ -445,6 +498,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 connections++;
+
             socket = tmp;
         }
         public void run()
