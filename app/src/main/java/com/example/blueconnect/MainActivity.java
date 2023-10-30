@@ -16,6 +16,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -42,6 +43,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -68,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private static final UUID MY_UUID3 = UUID.fromString("2238fe5f-b5cc-4226-9416-3d2385146075");
     private static final UUID MY_UUID4 = UUID.fromString("a16ecdf3-74c1-40db-94e4-6f29be306617");
     private static final UUID MY_UUID5 = UUID.fromString("89143ef2-bf5e-434b-a740-43c05dc4697a");
+
     Intent btEnable;
     private ActivityResultLauncher<Intent> enableBt;
 
@@ -210,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
             }
     }
 
+    //SERVER CLASSES NOT NECESSARY FOR SPEAKER CONNECTION
     private class ServerClass0 extends Thread
     {
         private BluetoothServerSocket serverSocket = null;
@@ -441,20 +446,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     int connections = 0;
+    Set<UUID> inUse = new HashSet<>();
+
     private class ClientClass extends Thread
     {
         private final BluetoothDevice device;
+
         private final BluetoothSocket socket;
         public ClientClass (BluetoothDevice device1)
         {
+            UUID temp = null;
+            ParcelUuid[] ids = device1.getUuids();
+            for(int i = 0; i < ids.length; i++)
+            {
+                if(ids[i].getUuid() != MY_UUID0 && !inUse.contains(ids[i].getUuid()))
+                {
+                    temp = ids[i].getUuid();
+                    break;
+                }
+            }
                 BluetoothSocket tmp = null;
                 device = device1;
-/*            try {
-                tmp = device.createRfcommSocketToServiceRecord(MY_UUID0);
+            try {
+                tmp = device.createRfcommSocketToServiceRecord(temp);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-*/
+/* Keeping this code in so phone to phone chat functionality isn't completely lost.
                 if(connections == 0) {
                     try {
                         tmp = device.createRfcommSocketToServiceRecord(MY_UUID1);
@@ -498,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 connections++;
-
+*/
             socket = tmp;
         }
         public void run()
