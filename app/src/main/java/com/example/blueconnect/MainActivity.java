@@ -13,8 +13,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.util.Log;
@@ -40,11 +45,26 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Random;
+
+import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.io.TarsosDSPAudioFormat;
+import be.tarsos.dsp.io.TarsosDSPAudioInputStream;
+import be.tarsos.dsp.io.jvm.AudioDispatcherFactory;
+
+import javazoom.jl.decoder.Bitstream;
+import javazoom.jl.decoder.BitstreamException;
+import javazoom.jl.decoder.Decoder;
+import javazoom.jl.decoder.DecoderException;
+import javazoom.jl.decoder.Obuffer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,6 +74,15 @@ public class MainActivity extends AppCompatActivity {
     EditText writeMsg;
     BluetoothAdapter blueAdapter;
     BluetoothDevice[] btArray;
+    MediaPlayer restorePlayer;
+    AudioTrack audioTrack;
+    HandlerThread audioThread;
+    TarsosDSPAudioInputStream tDSPAudioStream;
+    TarsosDSPAudioFormat dspFormat;
+    AudioDispatcher dispatcher;
+    AudioDispatcherFactory dispatcherFactory;
+    InputStream restoreStream;
+    Bitstream restoreBitStream;
 
     SendReceive[] sendReceive = {null, null, null, null, null, null};
     ClientClass[] clients = {null, null, null, null, null, null};
@@ -65,12 +94,6 @@ public class MainActivity extends AppCompatActivity {
     static final int STATE_MESSAGE_RECEIVED = 5;
 
     private static final String APP_NAME = "BTChat";
-    private static final UUID MY_UUID0 = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-    private static final UUID MY_UUID1 = UUID.fromString("ec01d2c3-52ef-4495-be73-112d2e2ce787");
-    private static final UUID MY_UUID2 = UUID.fromString("ef790c77-fd18-4e86-9e62-08aeba104465");
-    private static final UUID MY_UUID3 = UUID.fromString("2238fe5f-b5cc-4226-9416-3d2385146075");
-    private static final UUID MY_UUID4 = UUID.fromString("a16ecdf3-74c1-40db-94e4-6f29be306617");
-    private static final UUID MY_UUID5 = UUID.fromString("89143ef2-bf5e-434b-a740-43c05dc4697a");
 
     Intent btEnable;
     private ActivityResultLauncher<Intent> enableBt;
@@ -81,6 +104,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         blueAdapter = BluetoothAdapter.getDefaultAdapter();
         btEnable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+
+        // Temporary code for testing audio playback
+        restoreStream = getResources().openRawResource(R.raw.restore);
+        restoreBitStream = new Bitstream(restoreStream);
+
 
         enableBt = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == RESULT_OK) {
@@ -122,24 +150,15 @@ public class MainActivity extends AppCompatActivity {
             listen.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                        ServerClass0 serverClass0 = new ServerClass0();
-                        serverClass0.start();
-                        ServerClass1 serverClass1 = new ServerClass1();
-                        serverClass1.start();
-                        ServerClass2 serverClass2 = new ServerClass2();
-                        serverClass2.start();
-                        ServerClass3 serverClass3 = new ServerClass3();
-                        serverClass3.start();
-                        ServerClass4 serverClass4 = new ServerClass4();
-                        serverClass4.start();
-                        ServerClass5 serverClass5 = new ServerClass5();
-                        serverClass5.start();
+                        ServerClass serverClass = new ServerClass();
+                        serverClass.start();
                 }
             });
 
         listView.setOnItemClickListener((new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 for(int i = 0; i < 6; i++)
                 {
                     if(clients[i] == null)
@@ -157,11 +176,43 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String string=String.valueOf(writeMsg.getText());
+
+                Decoder restoreDecoder = new Decoder();
+                try {
+                    Obuffer outBuf = restoreDecoder.decodeFrame(restoreBitStream.readFrame(), restoreBitStream);
+
+                } catch (DecoderException e) {
+                    throw new RuntimeException(e);
+                } catch (BitstreamException e) {
+                    throw new RuntimeException(e);
+                }
+
+                /*
+                byte audioData[] = new byte[1024];
+                try {
+                    while (restoreStream.read(audioData) > 0) {
+                        sendReceive[i].write(SBCPacketBuilder(audioData));
+                        msg_box.setText(Arrays.toString(audioData));
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                */
+
+                /*
                 for(int i = 0; i < 6; i++) {
                     if (sendReceive[i] != null) {
+
+                        try {
+                            while (restoreStream.read(audioData) > 0) {
+                                //sendReceive[i].write(SBCPacketBuilder(audioData));
+                            }
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                         sendReceive[i].write(string.getBytes());
                     }
-                }
+                }*/
             }
         });
     }
@@ -213,16 +264,82 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
     }
+ 
+    /*
+        Attemping to reverse engineer kernel's A2DP functionality to avoid
+        android's connection limits
+        A2DP Spec: http://www.themadhowes.org.uk/g0etp/a2dp_spec_v12.pdf
+        Packet Breakdown starts at Page 18
 
-    //SERVER CLASSES NOT NECESSARY FOR SPEAKER CONNECTION
-    private class ServerClass0 extends Thread
+        Find some way to guarantee packet-by-packet sending
+        Find out what AVDTP Multiplexing is cause apparently it's important?
+
+        Octet 0: 0010 | 0010 - 0x22 - Freq 44100 | Stereo
+        Octet 1: 0100 | 01 | 01 - 0x45 - Block Length 8 | 8 Sub Bands | Loudness Allocation Method
+        Octet 2: 00000010 - Min Bitpool Value 2
+        Octet 3: 01111111 - Max Bitpool Value 127
+        Octet 4: 0 | 0 | 0 | 0 | ???? - Don't worry about it just case num frames to byte (;
+        NEVERMIND, SCREW ALL THAT, AUDIOTRACK AND AUDIOFORMAT DO THAT FOR US!!!
+        nvm they don't its so over
+     */
+    private byte[] SBCPacketBuilder(byte[] audioData) {
+        // Connection index is iterator i from setOnClickListener
+
+        // Was using these values in a library earlier but now I'm
+        // Just keeping them in case they're useful later
+        int frequency = 44100;
+        int channels = 2;
+        int blockLength = 16;
+        int subbands = 8;
+        int numFrames = audioData.length / (channels * blockLength);
+        int sbcPacketSize = 4 + (channels * numFrames * subbands);
+
+        byte[] sbcPacket = new byte[sbcPacketSize];
+        sbcPacket[0] = 0x22;
+        sbcPacket[1] = 0x45;
+        sbcPacket[2] = 0x02;
+        sbcPacket[3] = 0x7F;
+        sbcPacket[4] = (byte) numFrames;
+
+        // I still don't even know if this is working. The earbuds just close the connection when I send
+        System.arraycopy(audioData, 0, sbcPacket, 4, audioData.length);
+
+        return sbcPacket;
+
+        /*
+        // Start audio if this is the first time it is being streamed
+        if (audioTrack == null) {
+            audioTrack = new AudioTrack(
+                AudioManager.STREAM_MUSIC,
+                44100,
+                AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT),
+                AudioTrack.MODE_STREAM
+            );
+
+            audioThread = new HandlerThread("AudioThread");
+            audioThread.start();
+
+
+        }*/
+    }
+
+    private class ServerClass extends Thread
     {
         private BluetoothServerSocket serverSocket = null;
-        public ServerClass0() {
+        public ServerClass() {
             try {
-                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID1);
-            } catch (IOException a) {
+                Method getUuidsMethod = BluetoothAdapter.class.getDeclaredMethod("getUuids", null);
+                ParcelUuid[] uuids = (ParcelUuid[]) getUuidsMethod.invoke(blueAdapter, null);
+
+                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, uuids[0].getUuid());
+            } catch (IOException | NoSuchMethodException a) {
                 a.printStackTrace();
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
         }
         public void run()
@@ -254,197 +371,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class ServerClass1 extends Thread
-    {
-        private BluetoothServerSocket serverSocket = null;
-        public ServerClass1() {
-            try {
-                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID0);
-            } catch (IOException a) {
-                a.printStackTrace();
-            }
-        }
-        public void run()
-        {
-            BluetoothSocket socket = null;
-            while (socket == null)
-            {
-                try {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTING;
-                    handler.sendMessage(message);
-                    socket = serverSocket.accept();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTION_FAILED;
-                    handler.sendMessage(message);
-                }
-                if(socket != null)
-                {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTED;
-                    handler.sendMessage(message);
-                    sendReceive[0]=new SendReceive(socket);
-                    sendReceive[0].start();
-                    break;
-                }
-            }
-        }
-    }
-
-    private class ServerClass2 extends Thread
-    {
-        private BluetoothServerSocket serverSocket = null;
-        public ServerClass2() {
-            try {
-                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID2);
-            } catch (IOException a) {
-                a.printStackTrace();
-            }
-        }
-        public void run()
-        {
-            BluetoothSocket socket = null;
-            while (socket == null)
-            {
-                try {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTING;
-                    handler.sendMessage(message);
-                    socket = serverSocket.accept();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTION_FAILED;
-                    handler.sendMessage(message);
-                }
-                if(socket != null)
-                {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTED;
-                    handler.sendMessage(message);
-                    sendReceive[1]=new SendReceive(socket);
-                    sendReceive[1].start();
-                    break;
-                }
-            }
-        }
-    }
-    private class ServerClass3 extends Thread
-    {
-        private BluetoothServerSocket serverSocket = null;
-        public ServerClass3() {
-            try {
-                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID3);
-            } catch (IOException a) {
-                a.printStackTrace();
-            }
-        }
-        public void run()
-        {
-            BluetoothSocket socket = null;
-            while (socket == null)
-            {
-                try {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTING;
-                    handler.sendMessage(message);
-                    socket = serverSocket.accept();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTION_FAILED;
-                    handler.sendMessage(message);
-                }
-                if(socket != null)
-                {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTED;
-                    handler.sendMessage(message);
-                    sendReceive[2]=new SendReceive(socket);
-                    sendReceive[2].start();
-                    break;
-                }
-            }
-        }
-    }
-    private class ServerClass4 extends Thread
-    {
-        private BluetoothServerSocket serverSocket = null;
-        public ServerClass4() {
-            try {
-                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID4);
-            } catch (IOException a) {
-                a.printStackTrace();
-            }
-        }
-        public void run()
-        {
-            BluetoothSocket socket = null;
-            while (socket == null)
-            {
-                try {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTING;
-                    handler.sendMessage(message);
-                    socket = serverSocket.accept();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTION_FAILED;
-                    handler.sendMessage(message);
-                }
-                if(socket != null)
-                {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTED;
-                    handler.sendMessage(message);
-                    sendReceive[3]=new SendReceive(socket);
-                    sendReceive[3].start();
-                    break;
-                }
-            }
-        }
-    }
-    private class ServerClass5 extends Thread
-    {
-        private BluetoothServerSocket serverSocket = null;
-        public ServerClass5() {
-            try {
-                serverSocket = blueAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, MY_UUID5);
-            } catch (IOException a) {
-                a.printStackTrace();
-            }
-        }
-        public void run()
-        {
-            BluetoothSocket socket = null;
-            while (socket == null)
-            {
-                try {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTING;
-                    handler.sendMessage(message);
-                    socket = serverSocket.accept();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTION_FAILED;
-                    handler.sendMessage(message);
-                }
-                if(socket != null)
-                {
-                    Message message=Message.obtain();
-                    message.what=STATE_CONNECTED;
-                    handler.sendMessage(message);
-                    sendReceive[4]=new SendReceive(socket);
-                    sendReceive[4].start();
-                    break;
-                }
-            }
-        }
-    }
     int connections = 0;
     Set<UUID> inUse = new HashSet<>();
 
@@ -455,68 +381,29 @@ public class MainActivity extends AppCompatActivity {
         private final BluetoothSocket socket;
         public ClientClass (BluetoothDevice device1)
         {
-            UUID temp = null;
-            ParcelUuid[] ids = device1.getUuids();
-            for(int i = 0; i < ids.length; i++)
+            UUID connecting_uuid = null;
+            ParcelUuid[] uuids = device1.getUuids();
+
+            String uuidstring = "";
+            for (ParcelUuid id : uuids) {
+                uuidstring += id.toString() + '\n';
+            }
+
+            for(int i = 0; i < uuids.length; i++)
             {
-                if(ids[i].getUuid() != MY_UUID0 && !inUse.contains(ids[i].getUuid()))
+                if(!inUse.contains(uuids[i].getUuid()))
                 {
-                    temp = ids[i].getUuid();
+                    connecting_uuid = uuids[i].getUuid();
                     break;
                 }
             }
                 BluetoothSocket tmp = null;
                 device = device1;
             try {
-                tmp = device.createRfcommSocketToServiceRecord(temp);
+                tmp = device.createRfcommSocketToServiceRecord(connecting_uuid);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-/* Keeping this code in so phone to phone chat functionality isn't completely lost.
-                if(connections == 0) {
-                    try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID1);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else if(connections == 1) {
-                    try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID0);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else if(connections == 2) {
-                    try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID2);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else if (connections == 3) {
-                    try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID3);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else if(connections == 4) {
-                    try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID4);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else if(connections == 5) {
-                    try {
-                        tmp = device.createRfcommSocketToServiceRecord(MY_UUID5);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                connections++;
-*/
             socket = tmp;
         }
         public void run()
